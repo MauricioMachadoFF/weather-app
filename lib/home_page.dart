@@ -1,11 +1,45 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:weather_app/design_system/spacers/vertical_spacer.dart';
 import 'package:weather_app/design_system/spacing.dart';
+import 'package:weather_app/domain/usecases/get_weather_now.dart';
+import 'package:weather_app/presentation/blocs/load_weather_information_cubit.dart';
+import 'package:weather_app/presentation/pages/error_page.dart';
+import 'package:weather_app/presentation/pages/loading_page.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => LoadWeatherCubit(
+        getWeatherNow: GetWeatherNowImpl(),
+      )..loadWeatherNow(),
+      child: BlocBuilder<LoadWeatherCubit, LoadWeatherState>(
+        builder: (context, state) {
+          return state.when(
+            error: ErrorPage.new,
+            loading: () => const LoadingPage(
+              loadingMessage: 'Carregando informações de tempo',
+            ),
+            loaded: (weather) => const _HomePage(),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _HomePage extends StatelessWidget {
+  const _HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
